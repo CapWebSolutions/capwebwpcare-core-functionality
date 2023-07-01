@@ -80,3 +80,7 @@ function be_custom_menu_order( $menu_ord ) {
 add_filter( 'custom_menu_order', 'be_custom_menu_order' );
 add_filter( 'menu_order', 'be_custom_menu_order' );
 
+// Keep MainWP site user logged in all the time. 
+add_filter('auth_cookie_expiration', function(){
+    return YEAR_IN_SECONDS * 2;
+});
