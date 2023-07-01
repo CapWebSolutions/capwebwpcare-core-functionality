@@ -260,3 +260,6 @@ function remove_titles_from_pages() {
     }
 }
 
+
+
+
