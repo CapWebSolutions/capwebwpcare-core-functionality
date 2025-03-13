@@ -21,7 +21,7 @@ function capweb_duplicate_post_as_draft(){
 	/*
 	 * Nonce verification
 	 */
-	if ( !isset( $_GET['duplicate_nonce'] ) || !wp_verify_nonce( $_GET['duplicate_nonce'], basename( __FILE__ ) ) )
+	if ( !isset( $_GET['duplicate_nonce'] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['duplicate_nonce'] ) ), basename( __FILE__ ) ) )
 		return;
  
 	/*
@@ -82,16 +82,13 @@ function capweb_duplicate_post_as_draft(){
 		/*
 		 * duplicate all post meta using $wpdb->prepare()
 		 */
-		$post_meta_infos = $wpdb->get_results($wpdb->prepare("SELECT meta_key, meta_value FROM $wpdb->postmeta WHERE post_id=%d", $post_id));
-		if (count($post_meta_infos)!=0) {
-			foreach ($post_meta_infos as $meta_info) {
-				$meta_key = $meta_info->meta_key;
-				if( $meta_key == '_wp_old_slug' ) continue;
-				$meta_value = addslashes($meta_info->meta_value);
-				$wpdb->query($wpdb->prepare(
-					"INSERT INTO $wpdb->postmeta (post_id, meta_key, meta_value) VALUES (%d, %s, %s)",
-					$new_post_id, $meta_key, $meta_value
-				));
+		$post_meta_infos = get_post_meta($post_id);
+		if (!empty($post_meta_infos)) {
+			foreach ($post_meta_infos as $meta_key => $meta_values) {
+				if ($meta_key == '_wp_old_slug') continue;
+				foreach ($meta_values as $meta_value) {
+					add_post_meta($new_post_id, $meta_key, $meta_value);
+				}
 			}
 		}
  
@@ -101,7 +98,7 @@ function capweb_duplicate_post_as_draft(){
 		wp_redirect( admin_url( 'post.php?action=edit&post=' . $new_post_id ) );
 		exit;
 	} else {
-		wp_die(esc_html__('Post creation failed, could not find original post: ', 'fflassist-core-functionality') . esc_html($post_id));
+		wp_die(esc_html__('Post creation failed, could not find original post: ', 'capwebwpcare-core-functionality') . esc_html($post_id));
 	}
 }
 add_action( 'admin_action_capweb_duplicate_post_as_draft','capweb_duplicate_post_as_draft' );

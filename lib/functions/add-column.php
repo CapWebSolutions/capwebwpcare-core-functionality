@@ -25,7 +25,7 @@ function mycustom_mainwp_sitestable_item( $item ) {
 	$website = (object) $website ;
 	$sucuri = MainWP_Sucuri_DB::get_instance()->get_sucuri_by( 'site_id', $website->id );
 	if ( $sucuri->lastscan != 0  ) {
-		$item['security_scan'] = date( $date_format, $sucuri->lastscan ) . ' ' . date( $time_format, $sucuri->lastscan );
+		$item['security_scan'] = gmdate( $date_format, $sucuri->lastscan ) . ' ' . gmdate( $time_format, $sucuri->lastscan );
 	} else {
 		$item['security_scan'] = 'N/A';
 	}

@@ -3,7 +3,7 @@
  * Plugin Name: CapWebWPcare Core Functionality
  * Plugin URI: https://github.com/CapWebSolutions/capwebwpcare-core-functionality
  * Description: This contains all this site's core functionality so that it is theme independent.
- * Version: 3.0.0
+ * Version: 3.0.1
  * Author: Cap Web Solutions
  * Author URI: https://capwebsolutions.com
  * GitHub Plugin URI: https://github.com/CapWebSolutions/capwebwpcare-core-functionality
