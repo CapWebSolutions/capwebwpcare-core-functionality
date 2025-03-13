@@ -1,12 +1,20 @@
 <?php 
-/*
+/**
+ * Last Login
+ *
  * Function for post duplication. Duplicates appear as drafts. User is redirected to the edit screen
  *
- * @Link: https://torquemag.io/2020/08/duplicate-page-wordpress/
+ * @package      Core_Functionality
+ * @since        3.0.0
+ * @link         https://github.com/capwebsolutions/fflassist-core-functionality
+ * @author       Matt Ryan <matt@capwebsolutions.com>
+ * @copyright    Copyright (c) 2025, Matt Ryan
+ * @license      http://opensource.org/licenses/gpl-2.0.php GNU Public License
  */
-function rd_duplicate_post_as_draft(){
+
+function capweb_duplicate_post_as_draft(){
 	global $wpdb;
-	if (! ( isset( $_GET['post']) || isset( $_POST['post'])  || ( isset($_REQUEST['action']) && 'rd_duplicate_post_as_draft' == $_REQUEST['action'] ) ) ) {
+	if (! ( isset( $_GET['post']) || isset( $_POST['post'])  || ( isset($_REQUEST['action']) && 'capweb_duplicate_post_as_draft' == $_REQUEST['action'] ) ) ) {
 		wp_die('No post to duplicate has been supplied!');
 	}
  
@@ -72,21 +80,20 @@ function rd_duplicate_post_as_draft(){
 		}
  
 		/*
-		 * duplicate all post meta just in two SQL queries
+		 * duplicate all post meta using $wpdb->prepare()
 		 */
-		$post_meta_infos = $wpdb->get_results("SELECT meta_key, meta_value FROM $wpdb->postmeta WHERE post_id=$post_id");
+		$post_meta_infos = $wpdb->get_results($wpdb->prepare("SELECT meta_key, meta_value FROM $wpdb->postmeta WHERE post_id=%d", $post_id));
 		if (count($post_meta_infos)!=0) {
-			$sql_query = "INSERT INTO $wpdb->postmeta (post_id, meta_key, meta_value) ";
 			foreach ($post_meta_infos as $meta_info) {
 				$meta_key = $meta_info->meta_key;
 				if( $meta_key == '_wp_old_slug' ) continue;
 				$meta_value = addslashes($meta_info->meta_value);
-				$sql_query_sel[]= "SELECT $new_post_id, '$meta_key', '$meta_value'";
+				$wpdb->query($wpdb->prepare(
+					"INSERT INTO $wpdb->postmeta (post_id, meta_key, meta_value) VALUES (%d, %s, %s)",
+					$new_post_id, $meta_key, $meta_value
+				));
 			}
-			$sql_query.= implode(" UNION ALL ", $sql_query_sel);
-			$wpdb->query($sql_query);
 		}
- 
  
 		/*
 		 * finally, redirect to the edit post screen for the new draft
@@ -94,21 +101,21 @@ function rd_duplicate_post_as_draft(){
 		wp_redirect( admin_url( 'post.php?action=edit&post=' . $new_post_id ) );
 		exit;
 	} else {
-		wp_die('Post creation failed, could not find original post: ' . $post_id);
+		wp_die(esc_html__('Post creation failed, could not find original post: ', 'fflassist-core-functionality') . esc_html($post_id));
 	}
 }
-add_action( 'admin_action_rd_duplicate_post_as_draft', 'rd_duplicate_post_as_draft' );
+add_action( 'admin_action_capweb_duplicate_post_as_draft','capweb_duplicate_post_as_draft' );
  
 /*
  * Add the duplicate link to action list for post_row_actions
  */
-function rd_duplicate_post_link( $actions, $post ) {
+function capweb_duplicate_post_link( $actions, $post ) {
 	if (current_user_can('edit_posts')) {
-		$actions['duplicate'] = '<a href="' . wp_nonce_url('admin.php?action=rd_duplicate_post_as_draft&post=' . $post->ID, basename(__FILE__), 'duplicate_nonce' ) . '" title="Duplicate this item" rel="permalink">Duplicate</a>';
+		$actions['duplicate'] = '<a href="' . wp_nonce_url('admin.php?action=capweb_duplicate_post_as_draft&post=' . $post->ID, basename(__FILE__), 'duplicate_nonce' ) . '" title="Duplicate this item" rel="permalink">Duplicate</a>';
 	}
 	return $actions;
 }
  
 // Enable Duplicate option for post and pages
-add_filter( 'post_row_actions', 'rd_duplicate_post_link', 10, 2 );
-add_filter( 'page_row_actions', 'rd_duplicate_post_link', 10, 2 );
+add_filter( 'post_row_actions','capweb_duplicate_post_link', 10, 2 );
+add_filter( 'page_row_actions','capweb_duplicate_post_link', 10, 2 );

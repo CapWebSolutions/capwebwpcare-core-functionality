@@ -2,7 +2,6 @@
 Starting place for all custom development core functionality plugins. 
 Clone into your project and place in mu-plugins folder. 
 Change name as needed in:<br>
-- folder in mu-plugins
 - include statment inside load.php
 - primary php file in plugin folder
 <br>
